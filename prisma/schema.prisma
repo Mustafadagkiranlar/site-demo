@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int      @id @default(autoincrement())
+  full_name       String
+  password        String
+  username        String   @unique
+  email           String   @unique
+  DOB             DateTime
+  Biography       String?
+  profile_pic     String?
+  background_pic  String?
+  followers_count Int      @default(0)
+  following_count Int      @default(0)
+  post_count      Int      @default(0)
+  join_date       DateTime @default(now())
+  is_private      Boolean  @default(false)
+  city            Cities   @relation(fields: [city_id], references: [id])
+  city_id         Int
+  role            String   @default("user")
+
+  posts         Post[]
+  followedUsers Follows[]       @relation("FollowedUsers")
+  followers     Follows[]       @relation("Followers")
+  likes         Likes[]
+  comments      Comments[]
+  notifications Notifications[]
+}
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [user_id], references: [id])
+  user_id     Int
+  image       String?
+  description String?
+  location    String?
+  created_at  DateTime @default(now())
+  is_hidden   Boolean  @default(false)
+
+  likes    Likes[]
+  comments Comments[]
+  tags     Tags[]
+}
+
+model Likes {
+  id      Int  @id @default(autoincrement())
+  user    User @relation(fields: [user_id], references: [id])
+  user_id Int
+  post    Post @relation(fields: [post_id], references: [id])
+  post_id Int
+}
+
+model Comments {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [user_id], references: [id])
+  user_id    Int
+  post       Post     @relation(fields: [post_id], references: [id])
+  post_id    Int
+  comment    String
+  created_at DateTime @default(now())
+}
+
+model Tags {
+  id      Int    @id @default(autoincrement())
+  name    String
+  post    Post   @relation(fields: [post_id], references: [id])
+  post_id Int
+}
+
+model Follows {
+  id          Int  @id @default(autoincrement())
+  user        User @relation("FollowedUsers", fields: [user_id], references: [id])
+  user_id     Int
+  follower    User @relation("Followers", fields: [follower_id], references: [id])
+  follower_id Int
+}
+
+model Cities {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  user User[]
+}
+
+model Notifications {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [user_id], references: [id])
+  user_id    Int
+  message    String
+  created_at DateTime @default(now())
+}
